@@ -1,0 +1,111 @@
+{
+	"name": "2_1_Migrate list of tables from db into blob as csv solution 2",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('TableList')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat('select ', item().ColumnNames, ' from ', item().SchemaName, '.', item().TableName)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_toMigrateTablesFromDBToBlobSol2",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_filesCopiedFromDbTables",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"TableList": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"TableName": "EMP",
+						"SchemaName": "dbo",
+						"ColumnNames": "EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO"
+					},
+					{
+						"TableName": "DEPT",
+						"SchemaName": "dbo",
+						"ColumnNames": "DEPTNO, DNAME, LOC"
+					},
+					{
+						"TableName": "Product",
+						"SchemaName": "SalesLT",
+						"ColumnNames": "ProductID, Name, ProductNumber, Color, StandardCost, ListPrice, Size, Weight, ProductCategoryID,         ProductModelID, SellStartDate, SellEndDate, DiscontinuedDate, ThumbNailPhoto, ThumbnailPhotoFileName, rowguid, ModifiedDate"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "EFN Important Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-07T08:19:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,61 @@
+{
+	"name": "dataflow_pivot",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_dataFlows_blob1_forEmp",
+						"type": "DatasetReference"
+					},
+					"name": "empData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_efnblob2Targetcontainer",
+						"type": "DatasetReference"
+					},
+					"name": "PivotOutput",
+					"rejectedDataLinkedService": {
+						"referenceName": "ls_efnblob2Targetcontainer",
+						"type": "LinkedServiceReference"
+					}
+				}
+			],
+			"transformations": [
+				{
+					"name": "pivot1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EMPNO as short,",
+				"          ENAME as string,",
+				"          JOB as string,",
+				"          MGR as short,",
+				"          HIREDATE as string,",
+				"          SAL as double,",
+				"          COMM as double,",
+				"          DEPTNO as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> empData",
+				"empData pivot(groupBy(DEPTNO),",
+				"     pivotBy(JOB),",
+				"     {} = count(EMPNO),",
+				"     columnNaming: '$N$V',",
+				"     lateral: true) ~> pivot1",
+				"pivot1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['pivotOutput.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> PivotOutput"
+			]
+		}
+	}
+}

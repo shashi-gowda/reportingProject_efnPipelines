@@ -1,0 +1,227 @@
+{
+	"name": "3 2 Incremental Load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Fetch Incremental Load Table List",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "select *\nfrom [onCloudPrj].[tablelist]\nwhere LoadType='inc' and Status=1;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_onCloudDbTableListFromBlobHydrationFile",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Incremental Load Tables Data Move From Onprems to Cloud",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Fetch Incremental Load Table List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Fetch Incremental Load Table List').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Max Modified Date From Source",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat('select max(ModifiedDate) as LastModified from ', item().sourceSchema, '.', item().sourceTableName)",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_onPremsDB",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "Watermark Value",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat('select watermarkDateTime from [onCloudPrj].[watermarktable] where tablename=''',item().sourceTableName,'''')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "ds_onCloudDbTableListFromBlobHydrationFile",
+									"type": "DatasetReference"
+								}
+							}
+						},
+						{
+							"name": "onPrems to DataLake",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Watermark Value",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Max Modified Date From Source",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat('select * from ', item().sourceSchema, '.', item().sourceTableName, ' where ModifiedDate>''', activity('Watermark Value').output.firstRow.watermarkDateTime,'''', ' and ModifiedDate <=''', activity('Max Modified Date From Source').output.firstRow.LastModified,'''')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_onPremsDB",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_toRawLayerBlobFromOnPrems",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().sourceTableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Update Watermark",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "onPrems to DataLake",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "ls_sqlserver_reportingproject",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": {
+											"value": "@concat('update onCloudPrj.watermarktable set watermarkDateTime=''',activity('Max Modified Date From Source').output.firstRow.LastModified,'''', ' where tablename=''', item().sourceTableName,'''')",
+											"type": "Expression"
+										}
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						}
+					]
+				}
+			}
+		],
+		"folder": {
+			"name": "reportingProject_pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-06T06:11:13Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

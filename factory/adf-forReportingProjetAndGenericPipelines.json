@@ -1,0 +1,9 @@
+{
+	"name": "adf-forReportingProjetAndGenericPipelines",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7b88a103-a4e0-424b-aa88-6287c5919663",
+		"tenantId": "b41fe329-48c3-4014-a683-138f8a36bce6"
+	}
+}

@@ -1,0 +1,97 @@
+{
+	"name": "dataflow_select_deriveColumn_rank",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_dataFlows_blob1_forEmp",
+						"type": "DatasetReference"
+					},
+					"name": "empdata"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dataFlows_blob1_forEmp",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_blob2_container",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "rank1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EMPNO as short,",
+				"          ENAME as string,",
+				"          JOB as string,",
+				"          MGR as short,",
+				"          HIREDATE as string,",
+				"          SAL as double,",
+				"          COMM as double,",
+				"          DEPTNO as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> empdata",
+				"source(output(",
+				"          EMPNO as short,",
+				"          ENAME as string,",
+				"          JOB as string,",
+				"          MGR as short,",
+				"          HIREDATE as string,",
+				"          SAL as double,",
+				"          COMM as double,",
+				"          DEPTNO as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"empdata select(mapColumn(",
+				"          EMPNO,",
+				"          ENAME,",
+				"          JOB,",
+				"          Manager = MGR,",
+				"          DEPTNO,",
+				"          HIREDATE,",
+				"          SAL",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"source1 derive(Col1 = 1,",
+				"          ENAME = lower(ENAME)) ~> derivedColumn1",
+				"derivedColumn1 rank(desc(SAL, true),",
+				"     output(salRank as long),",
+				"     dense: true) ~> rank1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Continent as string",
+				"     ),",
+				"     partitionFileNames:['df_emp_sink.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

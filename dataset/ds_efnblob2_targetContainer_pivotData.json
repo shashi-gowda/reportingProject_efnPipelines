@@ -1,0 +1,49 @@
+{
+	"name": "ds_efnblob2_targetContainer_pivotData",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_efnblob2Targetcontainer",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "pivotOutput.csv",
+				"container": "targetcontainer"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "DEPTNO",
+				"type": "String"
+			},
+			{
+				"name": "ANALYST",
+				"type": "String"
+			},
+			{
+				"name": "CLERK",
+				"type": "String"
+			},
+			{
+				"name": "MANAGER",
+				"type": "String"
+			},
+			{
+				"name": "PRESIDENT",
+				"type": "String"
+			},
+			{
+				"name": "SALESMAN",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

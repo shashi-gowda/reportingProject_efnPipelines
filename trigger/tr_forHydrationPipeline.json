@@ -1,0 +1,24 @@
+{
+	"name": "tr_forHydrationPipeline",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "1 Master Pipeline",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/sharepoint/blobs/",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/c62851ea-bb18-4e9d-b050-41a7367d8f8f/resourceGroups/rg-shashi/providers/Microsoft.Storage/storageAccounts/blobforprojectreporting",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "ds_onCloudSqlServer_emp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sqlserver_reportingproject",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "EMP"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,36 @@
+{
+	"name": "ds_JsonInput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_efnblob1Container",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "input.json",
+				"container": "basecontainer"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"sno": {
+					"type": "integer"
+				},
+				"name": {
+					"type": "string"
+				},
+				"courses": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

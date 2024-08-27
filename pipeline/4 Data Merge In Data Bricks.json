@@ -1,0 +1,33 @@
+{
+	"name": "4 Data Merge In Data Bricks",
+	"properties": {
+		"activities": [
+			{
+				"name": "Mount Files Merge Into Delta Tables",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/shashichai74@gmail.com/2_Merge Delta Records from ADLS to DataBricks Delta Tables"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_DataBricksForMergeDataFromMountToDeltaTables",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "reportingProject_pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-06T06:11:13Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

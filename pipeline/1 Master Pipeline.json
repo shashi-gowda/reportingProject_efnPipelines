@@ -1,0 +1,127 @@
+{
+	"name": "1 Master Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Hydration Pipeline Execute",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "2 Hydration File Movement",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Full Load Pipeline Execute",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Hydration Pipeline Execute",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "3 1 Full Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Incremental Load Pipeline Execute",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Hydration Pipeline Execute",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "3 2 Incremental Load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Data Merge NoteBook",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Full Load Pipeline Execute",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Incremental Load Pipeline Execute",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "4 Data Merge In Data Bricks",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Reporting Analysis",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Data Merge NoteBook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "5 Reporting Analysis",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "reportingProject_pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-22T17:46:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

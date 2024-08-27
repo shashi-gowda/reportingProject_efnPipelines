@@ -1,0 +1,70 @@
+{
+	"name": "dataflow_customerView_fileTransform",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_customerViewBlob1",
+						"type": "DatasetReference"
+					},
+					"name": "customerView"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_customerViewTransformToSqlDB",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Column_1 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> customerView",
+				"customerView derive(tempCol1 = split(Column_1, ';')) ~> derivedColumn1",
+				"derivedColumn1 derive(tempCol2 = split(tempCol1[2], ':')) ~> derivedColumn2",
+				"derivedColumn2 derive(Product = tempCol2[1],",
+				"          Description = tempCol2[2],",
+				"          Area = tempCol1[3]) ~> derivedColumn3",
+				"derivedColumn3 select(mapColumn(",
+				"          Product,",
+				"          Description,",
+				"          Area",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

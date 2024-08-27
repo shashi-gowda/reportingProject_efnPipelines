@@ -1,0 +1,16 @@
+{
+	"name": "ds_onPremsDB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_onPrems_sqlserver",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "reportingProject_datasets"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

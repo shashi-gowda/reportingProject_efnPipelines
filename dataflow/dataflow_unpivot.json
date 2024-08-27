@@ -1,0 +1,57 @@
+{
+	"name": "dataflow_unpivot",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_efnblob2_targetContainer_pivotData",
+						"type": "DatasetReference"
+					},
+					"name": "pivotData"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_efnblob2Targetcontainer",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "unpivot1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          DEPTNO as string,",
+				"          ANALYST as string,",
+				"          CLERK as string,",
+				"          MANAGER as string,",
+				"          PRESIDENT as string,",
+				"          SALESMAN as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> pivotData",
+				"pivotData unpivot(output(",
+				"          Job as string,",
+				"          Count as string",
+				"     ),",
+				"     ungroupBy(DEPTNO),",
+				"     lateral: true,",
+				"     ignoreNullPivots: true) ~> unpivot1",
+				"unpivot1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['unpivotData.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

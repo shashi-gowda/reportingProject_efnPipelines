@@ -1,0 +1,114 @@
+{
+	"name": "2_Migrate list of tables from db into blob as csv",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('TableList')",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_tablesToMigrateFromDbToBlob",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										},
+										"SchemaName": {
+											"value": "@item().SchemaName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_filesCopiedFromDbTables",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().TableName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"TableList": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"TableName": "EMP",
+						"SchemaName": "dbo"
+					},
+					{
+						"TableName": "DEPT",
+						"SchemaName": "dbo"
+					},
+					{
+						"TableName": "Product",
+						"SchemaName": "SalesLT"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "EFN Important Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-08-07T08:19:35Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

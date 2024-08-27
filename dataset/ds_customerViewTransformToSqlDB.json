@@ -1,0 +1,17 @@
+{
+	"name": "ds_customerViewTransformToSqlDB",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azureSqlDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "customerView"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
